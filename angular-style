@@ -1,0 +1,68 @@
+// app.js                                                                     * module in own file
+angular.module('app', ['events']);                                            * app module is a manifest/index of modules for the application
+
+// shared-widgets.module.js                                                   * don't clutter app module; but OK for small apps
+angular.module('shared-widgets', []);
+
+// some.controller.js                                                         * controller in own file
+angular.module('app').controller('SomeController', [                          * never store reference to module
+  'searchService',
+  function SomeController(searchService) {                                    * named functions
+    var vm = this;                                                            * controllerAs (vm = view model)
+    vm.variable = {};                                                         * scope variables as objects ("dotted" view variables)
+    vm.search = search;                                                       * bindable members up top -- track which members the view can use
+    activate();                                                               * put controller start-up logic in an `activate` function
+    function search() {                                                       * controller implementation details further down
+      return searchService.search().then().catch();                           * delegate controller logic to services
+    }
+  }
+]);
+
+// some.factory.js
+angular.module('app').factory('someFactory', [                                * prefer factory to service
+  '$http',
+  function someFactory($http) {
+    return {                                                                  * bindable members up top -- clearly show the service API
+      get: getSomething,
+      someValue: ''
+    };
+    function getSomething() {                                                 * service implementation details further down
+      return $http.get('server/api').then().catch();                          * return a promise if service is a data service
+    }
+  }
+]);
+
+// some.directive.js
+angular.module('app').directive('someDirective', [
+  function someDirective() {
+    return {                                                                  * bindable members up top
+      restrict: 'A',
+      link: link
+    };
+    function link(scope, element, attributes) {}
+  }
+]);
+
+// constants.js                                                               * constants for vendor library global variables
+angular.module('app')
+.constant('pv', pv)
+.constant('library', library);
+
+// some-module.constants.js                                                   * constants per module
+angular.module('some-module')
+.consant('TERNARY_BOOLEAN', [0, 1, 2])                                        * enums
+.constant('MODULE_NAME', 'Special Module');                                   * string resources
+
+<div ng-controller="SomeController as controller">                            * controllerAs
+  {{controller.variable}}                                                     * "dotted" view variables
+</div>
+
+<html ng-app="appName" ng-strict-di></html>                                   * ng-strict-di validates dependency injection
+
+Notes
+(1) Keep a controller focused on its view; controller is a "view model"
+(2) Do not reuse controllers for multiple views
+(3) Chaining promise calls -- https://github.com/johnpapa/angular-styleguide#style-y061
+(4) Route errors -- https://github.com/johnpapa/angular-styleguide#style-y112
+
+(!) Factory code seems cleaner if return object is at bottom...
